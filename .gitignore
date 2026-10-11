@@ -30,3 +30,7 @@ reference/*.mkv
 
 # Files over 90 MB cannot be matched by .gitignore; the pre-commit hook in
 # .githooks/ refuses them (enable once per clone: git config core.hooksPath .githooks).
+
+# Local-only material with unknown licence (never commit; see CLAUDE.md)
+reference/_local/
+library/props/textures/_local/

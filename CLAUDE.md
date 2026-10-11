@@ -89,6 +89,11 @@ y = 2.0, camera side −Y), so linking needs no repositioning.
 - **Kali frame** (`PROP_KaliFrame`): framed devotional print, glass-covered, with a
   marigold and hibiscus garland. The print is deliberately abstract (indigo form, red,
   gold); swap in a licensed Kalighat print, never a crude depiction.
+  **PLACEHOLDER: unknown licence, local only, must be replaced before any public release.**
+  The print image in use is a Pinterest download kept in `reference/_local/kali_print_pinterest.jpg`
+  and cropped to `library/props/textures/_local/kali_print_clean.png`. Both are git-ignored; the
+  image is referenced by relative path and never packed into `kali_frame.blend`, so a clone
+  without the file shows a missing (pink) texture.
 
 ## Lighting look (`LGT_MonsoonNight`)
 
