@@ -1,0 +1,13 @@
+#!/bin/sh
+# Refuse any staged file over 90 MB (GitHub's hard limit is 100 MB).
+limit=$((90 * 1024 * 1024))
+fail=0
+for f in $(git diff --cached --name-only --diff-filter=ACM); do
+  [ -f "$f" ] || continue
+  size=$(wc -c < "$f")
+  if [ "$size" -gt "$limit" ]; then
+    echo "pre-commit: $f is $((size / 1024 / 1024)) MB (> 90 MB). Keep it out of git or track it with Git LFS." >&2
+    fail=1
+  fi
+done
+exit $fail

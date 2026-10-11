@@ -1,6 +1,7 @@
-"""Synthesised sound design + score (48 kHz stereo WAV), driven by timeline.py.
+"""Synthesised sound design + score (48 kHz stereo WAV), the house sound palette.
+Cue timing comes from the scene's timeline.py.
 
-    python3 edit/sound.py build/audio.wav
+    python3 edit/sound.py build/sc01_lamp/audio.wav [--scene sc01_lamp]
 """
 import sys
 import wave
@@ -8,7 +9,9 @@ import wave
 import numpy as np
 from scipy import signal
 
-import timeline as T
+import style
+
+T = style.load_timeline()
 
 SR = 48000
 N = int(T.DURATION * SR)

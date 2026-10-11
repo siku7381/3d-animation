@@ -1,6 +1,8 @@
-"""Picture edit: grade, bloom, motion graphics, type, transitions, grain -> H.264 + AAC.
+"""Picture edit, the house look: grade, bloom, motion graphics, type, transitions,
+grain -> H.264 + AAC. Timing comes from the scene's timeline.py.
 
-    python3 edit/post.py --frames build/frames --audio build/audio.wav --out out/charulata.mp4
+    python3 edit/post.py [--scene sc01_lamp] [--frames build/frames/sc01_lamp]
+                         [--audio build/sc01_lamp/audio.wav] [--out out/charulata_sc01_lamp.mp4]
                          [--preview-at SECONDS --preview-out file.png]
 """
 import argparse
@@ -12,12 +14,14 @@ import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
-import timeline as T
+import style
+
+T = style.load_timeline()
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FONTS = os.path.join(ROOT, "assets", "fonts")
-W, H, FPS = T.W, T.H, T.FPS
-BAR = int(round((H - W / T.LETTERBOX) / 2)) if T.LETTERBOX else 0
+W, H, FPS = style.W, style.H, style.FPS
+BAR = int(round((H - W / style.LETTERBOX) / 2)) if style.LETTERBOX else 0
 rng = np.random.default_rng(7)
 
 
@@ -424,10 +428,12 @@ def render_frame(f, frames, typ):
 
 
 def main():
+    scene = os.path.basename(style.scene_arg())
     ap = argparse.ArgumentParser()
-    ap.add_argument("--frames", default=os.path.join(ROOT, "build", "frames"))
-    ap.add_argument("--audio", default=os.path.join(ROOT, "build", "audio.wav"))
-    ap.add_argument("--out", default=os.path.join(ROOT, "out", "charulata.mp4"))
+    ap.add_argument("--scene", default=scene)
+    ap.add_argument("--frames", default=os.path.join(ROOT, "build", "frames", scene))
+    ap.add_argument("--audio", default=os.path.join(ROOT, "build", scene, "audio.wav"))
+    ap.add_argument("--out", default=os.path.join(ROOT, "out", f"charulata_{scene}.mp4"))
     ap.add_argument("--preview-at", type=float, nargs="*")
     ap.add_argument("--preview-out", default="preview.png")
     a = ap.parse_args()

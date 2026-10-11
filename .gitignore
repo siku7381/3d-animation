@@ -1,5 +1,32 @@
+# Renders, frames, audio, caches: everything generated lives in build/
 build/
+frames/
+renders/
+**/frames/
+**/renders/
+*.exr
+scenes/**/*.png
+scenes/**/*.wav
+library/**/*.png
+out/*.png
+out/*.wav
+preview.png
+charulata_preview.mp4
+
+# Blender backups and caches
+*.blend1
+*.blend2
+blendcache_*/
+cache/
 __pycache__/
 *.pyc
-*.blend1
-charulata_preview.mp4
+
+# Reference footage (keep notes/stills small; big media stays local)
+reference/*.mp4
+reference/*.mov
+reference/*.mkv
+
+.DS_Store
+
+# Files over 90 MB cannot be matched by .gitignore; the pre-commit hook in
+# .githooks/ refuses them (enable once per clone: git config core.hooksPath .githooks).
