@@ -32,17 +32,17 @@ LIGHTNING = [
 
 # Kinetic type. style: loc | punch | whisper | caption | title | sub | tag
 TEXT = [
-    dict(t0=0.35, t1=2.85, text="SHONAR GAON, BENGAL", style="loc"),
-    dict(t0=0.95, t1=2.85, text="Monsoon  ·  1:47 a.m.", style="loc_sub"),
-    dict(t0=4.55, t1=7.95, text="FORTY MONSOONS.", style="punch"),
-    dict(t0=8.70, t1=11.35, text="ONE LAMP.", style="punch"),
-    dict(t0=11.70, t1=14.35, text="ONE LOCKED DOOR.", style="punch", glitch=11.5 + 43 / FPS),
+    dict(t0=0.35, t1=2.85, text="Puri, Odisha", style="loc"),
+    dict(t0=0.95, t1=2.85, text="MONSOON · 1:10 a.m. NIGHT", style="loc_sub"),
+    dict(t0=4.55, t1=7.95, text="HE STOLE HER VOICE.", style="punch"),
+    dict(t0=8.70, t1=11.35, text="HER MOTHER\nNEVER LET GO.", style="punch"),
+    dict(t0=11.70, t1=14.35, text="THE GODDESS\nANSWERED.", style="punch", glitch=11.5 + 43 / FPS),
     dict(t0=15.40, t1=19.35, text="She has never asked", style="whisper"),
     dict(t0=16.45, t1=19.35, text="what waits behind it.", style="whisper2"),
     dict(t0=22.20, t1=25.20, text="Tonight, the flame wavers.", style="caption"),
-    dict(t0=25.50, t1=29.60, text="CHARULATA", style="title"),
-    dict(t0=26.30, t1=29.60, text="চারুলতা", style="sub"),
-    dict(t0=27.70, t1=29.60, text="THIS MONSOON", style="tag"),
+    dict(t0=25.50, t1=29.60, text="TARA", style="title"),
+    dict(t0=25.50, t1=29.60, text="Blessing of Maa Kali", style="tagline"),   # rises with the title
+    dict(t0=27.70, t1=29.60, text="THIS DURGA PUJA", style="tag"),
 ]
 
 # Picture transitions / accents

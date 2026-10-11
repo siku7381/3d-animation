@@ -52,7 +52,8 @@ def author():
         mats, assets.CHARU_ROOT, assets.WICK, floor_z=0.012,
         floors=[obs["Floor"], obs["Asana"], obs["Altar"]])
     for img in bpy.data.images:
-        if img.source == 'FILE' and not img.packed_file and img.filepath:
+        # pack everything except local-only material (unknown licence, see CLAUDE.md)
+        if img.source == 'FILE' and not img.packed_file and img.filepath and "_local" not in img.filepath:
             img.pack()
     os.makedirs(os.path.dirname(MASTER), exist_ok=True)
     bpy.ops.wm.save_as_mainfile(filepath=MASTER, compress=True)

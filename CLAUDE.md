@@ -1,6 +1,7 @@
-# CHARULATA — project bible
+# TARA — project bible
 
-A Bengali village prayer room, a monsoon night, an old widow and a padlocked door.
+A prayer room in Puri, Odisha, a monsoon night, an old Odia widow and a padlocked door.
+Film title: **TARA** (tagline *Blessing of Maa Kali*; end card THIS DURGA PUJA).
 Short 3D films made scene by scene in Blender (Cycles), edited with the house style in
 `edit/`. Read this file and `continuity.md` before touching anything.
 
@@ -44,7 +45,7 @@ reference/            reference footage and stills (not in git if large)
 scenes/sc01_lamp/     sc01_lamp.blend, build_scene.py, animate.py, shots.py,
                       timeline.py, render.py
 edit/                 house style: style.py, post.py, sound.py
-assets/fonts/         Cinzel, Cormorant, Noto Serif Bengali (SIL OFL)
+assets/fonts/         Cinzel, Cormorant (SIL OFL); add Noto Serif Oriya (OFL) if an Odia-script title is needed
 out/                  finished films
 build/                renders, audio, caches (ignored)
 ```
@@ -59,7 +60,7 @@ y = 2.0, camera side −Y), so linking needs no repositioning.
 | | |
 |---|---|
 | Age | 70 |
-| Who | Bengali widow; has kept this prayer room for forty monsoons |
+| Who | Odia widow in Puri, Odisha; has kept this prayer room for forty monsoons |
 | Build | small (about 1.5 m), slight stoop, rounded upper back; MPFB2 (MakeHuman) body |
 | Skin | finely lined, medium brown (blend of MakeHuman's old light and dark skins, matched to sRGB ≈ 0.55 / 0.375 / 0.27), dry, fine pores |
 | Face | eye bags, hollowed cheeks, laugh lines, brown eyes, silver brows |
@@ -70,6 +71,137 @@ y = 2.0, camera side −Y), so linking needs no repositioning.
 | Voice | **never speaks in sc01** |
 | Rig | MPFB default rig. `HandTarget` drives the right arm (IK + wrist copy-rotation) and `PinSocket` on the right wrist holds the brass pin. Scenes animate around each bone's stored `rest_rot`. Use `library/source/charulata_controls.hand_to()` to aim the pin tip. |
 | Rest pose | seated cross-legged on the straw mat before the Kali print, facing the altar, turned 26° from the lamp, leaning in to reach it with her right hand; left hand on her left knee |
+
+## Character style guide (applies to ALL characters)
+
+Derived from `reference/_local/charulata_ref.mp4` (local only, licence/permission not yet
+confirmed; key frames in `reference/_local/ref_frames/charulata_*.jpg`). Colour values
+are sRGB medians measured on the reference frames, as lit there (warm lamp + cool
+window), not albedos.
+
+- **Realism**: photoreal, live-action cinematic. No stylisation, no smooth "CG" skin.
+  Shallow depth of field, close natural perspective (35–50 mm equivalent).
+- **Skin detail**: pores visible in close-ups; deep wrinkles where age puts them
+  (forehead lines, crow's feet, nasolabial folds, crepey neck and loose skin under the
+  jaw); creased knuckles, raised veins and tendons on the backs of hands and forearms;
+  occasional age spots. A faint humid sheen in the monsoon, satin rather than oily.
+- **Skin tone**: deep medium-to-dark brown with a warm red undertone. Lamp-lit cheek
+  ≈ (0.35, 0.16, 0.10), forearm ≈ (0.40, 0.28, 0.21), back of hand ≈ (0.52, 0.39, 0.33).
+- **Hair**: real strands, salt-and-pepper silver to white with darker grey strands; fine
+  and thinning at the crown so the scalp shows faintly; pulled back from a centre
+  parting into a small low bun at the nape; loose flyaways that catch the lamp light.
+  Crown under lamp ≈ (0.31, 0.29, 0.27).
+- **Clothing**: everyday, worn, soft cotton. Off-white/cream sari (lit ≈ 0.60, 0.40,
+  0.25) with a narrow muted border; short-sleeved fitted blouse in a muted colour (the
+  reference: olive green ≈ 0.23, 0.22, 0.18); pallu over the left shoulder. Jewellery,
+  if any, is small and plain gold (thin chain, studs, one thin bangle per wrist).
+- **Fabric**: matte cotton with soft, heavy folds (slightly damp in the monsoon), gentle
+  sheen only on highlights, creases at elbows and waist; never stiff or plasticky.
+- **Proportions**: true human proportions; elderly characters slight and thin-limbed,
+  sloping shoulders, small hands with long fingers.
+- **Posture**: elderly characters stoop forward with a rounded upper back, head bowed
+  toward the task, elbows close to the body.
+- **Movement**: slow, careful and economical; both hands work together (one steadies,
+  one acts); small pauses between actions; a faint tremor; prayer is a pranam (palms
+  together near the chin, head and eyes lowered). No sudden or broad gestures.
+- **Lighting on characters**: low-key and motivated. The oil lamp is the only warm
+  source and models the face from low front; cool blue monsoon light from the window
+  and door gaps gives fill and rim; deep falloff; wet surfaces catch specular glints.
+- **Colour grade**: warm amber highlights (≈ 0.87, 0.76, 0.60), dark warm-neutral
+  shadows (≈ 0.11, 0.08, 0.06) with blue kept to the window, rain and door gaps;
+  low-key (median luma ≈ 0.25, 99th percentile ≈ 0.72, nothing clipped but the flame);
+  moderate saturation (median ≈ 0.39); filmic contrast, crisp detail, light grain.
+
+## Edit style guide
+
+Not derived: the reference is a single continuous 8.0 s shot (1280×720, 24 fps; no cuts —
+the largest frame-to-frame scene score is 0.017), with no on-screen text and **no audio
+track**, so it shows no cut rhythm, captions, transitions, music or loudness to measure.
+It does show one camera idea worth keeping: a slow continuous dolly push-in, from a
+wide side view of the whole figure to a medium close-up of the face and hands over 8 s,
+with slight drift and no handheld shake. Until an edited reference is supplied, the edit
+style stays as built in `edit/`.
+
+## Tone lock
+
+TARA is a realistic monsoon-night horror drama. Every edit, whatever its reference, keeps
+this tone:
+- **Timing grid, never audible.** Cuts may sit on a 96 BPM grid (one beat = 0.625 s =
+  15 frames) for rhythm, but the grid is never heard: no drum pulse, no click, no
+  beat-driven music.
+- **Diegetic sound stays diegetic.** The brass tinks happen where the pin meets the wick in
+  the picture, never moved onto a beat.
+- **Cards are black.** Full-frame text cards on black (Cinzel / Cormorant, cream), entered
+  by a lightning flash at most. No coloured or flare backgrounds.
+- **Sound palette:** monsoon rain (outdoor, sheltered, indoor), wind, thunder, the flame,
+  the tanpura drone, the heartbeat, horror stingers, reverse swells, braams, sub booms,
+  and silence drops. The temple bell for the title.
+- **Never:** upbeat music, comic timing, saturated daylight grades, whip-pan showiness, or
+  anything supernatural on screen (see Never).
+
+## Edit style guide: Moana reference
+
+Measured from `reference/_local/edit_ref/Moana.mov` (copyrighted; local only; used to
+study editing style, never as footage, music or sound). The file is a **screen recording
+of the YouTube trailer**: 2880×1574 at variable frame rate (median 40 fps, ~22 distinct
+frames/s), picture 2880×1266 inside it (**2.27:1 delivered**, i.e. a scope 2.39:1 frame
+with a little extra height), YouTube player chrome at 0–2.3 s and an end screen after
+146.6 s. **It has no audio track**, so loudness, LUFS, BPM, beats, music builds and SFX
+hits could not be measured, and cut-on-beat cannot be checked.
+
+**Length and cuts.** Trailer proper 2.35–146.59 s (144.2 s). 126 cuts → 127 segments: 121
+picture shots, 4 cuts to black, 2 white-flash frames. Cuts found with histogram
+correlation + ffmpeg scene score, every candidate checked by eye (before/after sheets).
+- Picture shot length: **mean 1.14 s, median 0.88 s**, min 0.21 s, max 7.75 s (a held
+  dialogue take). Two thirds of shots are under 1.2 s.
+- Pacing by act (median shot / cuts per 10 s):
+  1. opening, bright ocean and village (2.4–9.7 s): 2.37 s / 4.1. Slow, establishing.
+  2. dark act, storm, cave, night sea (9.7–30.2 s): 0.75 s / 12.2. Fast, with black frames
+     between cuts and lightning flicker.
+  3. studio logo + beach comedy (30.2–64.1 s): 0.96 s / 6.2. Reaction shots, two long
+     dialogue holds (2.7 s, 7.8 s).
+  4. dialogue + card run, sunset sea (64.1–92.3 s): 1.00 s / 8.9. Shots alternate with
+     studio and actor cards.
+  5. action climax, fire, storm, chase (92.3–123.9 s): **0.71 s / 12.3**, the fastest
+     sustained cutting.
+  6. title logo + coda + end card (123.9–146.6 s): 1.17 s / 3.5. Logo held 3.2 s, cut
+     to black, a short comic button scene, a 5 s held final pose, credits, end card.
+- Shape: slow open → fast dark burst → breathe (comedy) → card run → fastest climax
+  → logo → quiet button → end card. Cut intervals are irregular (coefficient of
+  variation 0.7–0.9); there is no steady visual beat grid.
+
+**Camera (per shot, from optical flow).** Push-in 45 shots (37 %), static 23, slow drift
+19, pull-out 18, drift with shake 5, whip/very fast move 4, lateral pans 7. Almost
+every shot moves a little; slow pushes dominate. Shake only in action.
+
+**Transitions.** **Hard cuts only** (no dissolves found). White flash ~0.1–0.25 s used
+as the way INTO every text card (46.8, 64.2, 71.8, 94.2, 98.5 s) plus once in-picture
+(magic burst, 106.9 s). Cuts to black: brief (0.03–0.45 s) black frames punctuating
+the dark act; longer dips at act breaks (1.0 s before the studio logo at 30.2 s, 0.4 s
+after the title logo at 127.0 s, 2.6 s at the end).
+
+**Text and cards.** Full-frame cards, never text over picture. Lettering: bold
+display caps (a stylised, slightly textured sans), cyan-to-white with a soft glow,
+centred, set over a blue lens-flare/bokeh background. Size: main line ~10 % of
+picture height; a small kicker line above (FROM THE CREATORS OF / INTRODUCING) at
+~3 %. Animation: hard cut to a white flash → the card resolves out of the flare with
+the text already formed (~0.45 s) → while the text holds, the background darkens
+from bright blue to deep navy with a slow push → hard cut out. Card on screen
+**1.1–1.6 s** (5 cards: date, two "from the creators of", two actor credits).
+Title: the logo cut in clean over a bright ocean plate, held 3.2 s with a slow drift,
+then a cut to black. End: credits block 2 s, release-date card ~2 s on black. No
+subtitles; no captions over picture.
+
+**Colour and look.** Saturated and bright in the day acts (median saturation 0.44–0.60;
+median luma 0.40–0.43), deep blue-black in the night act (luma 0.11, blue-weighted),
+warm magenta-orange sunset in acts 4–5. Wide contrast (luma 5–95 % range 0.70–0.86),
+blown white flashes, bloom on fire and magic. No grain. Scope aspect.
+
+**Audio.** Not measurable (no audio stream). What the picture implies: dialogue
+reaction shots and two long talking holds (acts 3–4) suggest dialogue beats with
+music under; card flashes and the climax's 0.7 s cutting suggest hits on cuts; the
+logo cut to black and the quiet button suggest a music stop before the coda. Treat
+these as inferences, not measurements.
 
 ## Locations
 
@@ -88,7 +220,8 @@ y = 2.0, camera side −Y), so linking needs no repositioning.
   The door stays **locked** unless continuity says otherwise.
 - **Kali frame** (`PROP_KaliFrame`): framed devotional print, glass-covered, with a
   marigold and hibiscus garland. The print is deliberately abstract (indigo form, red,
-  gold); swap in a licensed Kalighat print, never a crude depiction.
+  gold); swap in a licensed Odisha Pattachitra print (Raghurajpur, near Puri), never a
+  crude depiction.
   **PLACEHOLDER: unknown licence, local only, must be replaced before any public release.**
   The print image in use is a Pinterest download kept in `reference/_local/kali_print_pinterest.jpg`
   and cropped to `library/props/textures/_local/kali_print_clean.png`. Both are git-ignored; the
@@ -120,10 +253,11 @@ MakeHuman system assets, needed only to rebuild Charulata). Python for edit/:
 
 ## Fonts and type
 
-`assets/fonts/`: **Cinzel** (titles, punch lines such as `ONE LAMP.`), **Cormorant**
-(whispers, captions), **Noto Serif Bengali** (চারুলতা). Type styles (`loc`, `punch`,
-`whisper`, `caption`, `title`, `sub`, `tag`) live in `edit/post.py`. Text appears only
-in the edit, never across a cut.
+`assets/fonts/`: **Cinzel** (title `TARA`, location card, punch lines such as
+`HE STOLE HER VOICE.`, end card), **Cormorant** (time card, whispers, captions, the
+tagline). All on-screen text is English. Type styles (`loc`, `loc_sub`, `punch`,
+`whisper`, `caption`, `title`, `tagline`, `tag`) live in `edit/post.py`; a punch line may
+break onto two lines with `\n`. Text appears only in the edit, never across a cut.
 
 ## Sound motifs (`edit/sound.py`)
 
@@ -169,5 +303,5 @@ B=/Applications/Blender.app/Contents/MacOS/Blender
 $B -b --python scenes/sc01_lamp/build_scene.py                       # relink + rebake the scene file
 $B -b scenes/sc01_lamp/sc01_lamp.blend --python scenes/sc01_lamp/render.py -- --shots s4_profile_push --only-frame 60
 ~/charulata-env/bin/python edit/sound.py build/sc01_lamp/audio.wav --scene sc01_lamp
-~/charulata-env/bin/python edit/post.py --scene sc01_lamp
+~/charulata-env/bin/python edit/post.py --scene sc01_lamp           # -> out/Tara.mp4
 ```

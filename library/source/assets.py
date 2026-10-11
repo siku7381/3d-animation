@@ -5,7 +5,7 @@ Authoring record only. build_library.py runs these builders once to write the
 Each builder puts its objects in one named collection (SET_ / PROP_ / LGT_).
 """
 import math
-import random
+import os
 
 import bpy
 import bmesh
@@ -23,6 +23,7 @@ WICK = LAMP_BASE + Vector((0.035, 0.0, 0.215))  # wick tip, front lip of bowl
 FRAME_C = Vector((-0.42, BACK_Y - 0.03, 1.08))  # framed image of Maa Kali
 DOOR_X0, DOOR_X1, DOOR_TOP = 0.70, 1.50, 1.82
 PADLOCK = Vector((1.10, BACK_Y + 0.02, 0.98))
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CHARU_ROOT = Vector((-0.40, 1.12, 0.014))       # her pelvis, seated on the mat before the print
 
 
@@ -247,7 +248,7 @@ def make_materials():
     m.bump(m.noise(80, 6), 0.2, 0.002)
     mats["iron"] = m.mat
 
-    # Red-oxide floor typical of Bengal village homes, worn and slightly glossy.
+    # Red-oxide floor typical of old Odisha homes, worn and slightly glossy.
     m = M("RedOxideFloor")
     n = m.noise(1.8, 8, 0.6)
     m.set(Base_Color=m.ramp(n, [(0.3, (0.13, 0.035, 0.025)), (0.75, (0.24, 0.07, 0.045))]),
@@ -323,14 +324,6 @@ def make_materials():
     nt.links.new(em.outputs[0], out.inputs[0])
     mats["sky"] = sky
 
-    # Framed devotional print (see make_print_texture)
-    m = M("DevotionalPrint")
-    tex = m.node("ShaderNodeTexImage")
-    tex.image = make_print_texture()
-    uv = m.node("ShaderNodeTexCoord").outputs["UV"]
-    m.l(uv, tex.inputs["Vector"])
-    m.set(Base_Color=tex.outputs["Color"], Roughness=0.08, Coat_Weight=1.0, Coat_Roughness=0.02)
-    mats["print"] = m.mat
 
     for name, col in (("Marigold", (0.6, 0.2, 0.01)), ("Hibiscus", (0.45, 0.01, 0.015)),
                       ("Vermilion", (0.55, 0.05, 0.02))):
@@ -339,47 +332,6 @@ def make_materials():
         m.bump(m.noise(90, 4), 0.5, 0.002)
         mats[name.lower()] = m.mat
     return mats
-
-
-def make_print_texture():
-    """Paint an aged, glass-covered devotional print procedurally.
-
-    It is intentionally kept dark and partly hidden by a garland: the frame should
-    read as a Kali print (blue-black, red, gold) without a crude depiction of the
-    deity. Swap in a licensed print for a production version.
-    """
-    W, H = 256, 340
-    img = bpy.data.images.new("DevotionalPrint", W, H)
-    rnd = random.Random(7)
-    px = []
-    for y in range(H):
-        for x in range(W):
-            u, v = x / W, y / H
-            # aged paper border
-            r, g, b = 0.42, 0.30, 0.16
-            inner = 0.08 < u < 0.92 and 0.06 < v < 0.94
-            if inner:
-                # deep indigo-black field, dark crimson lower band
-                r, g, b = 0.035, 0.04, 0.09
-                if v < 0.22:
-                    r, g, b = 0.22, 0.03, 0.03
-                # gold arch
-                d = math.hypot((u - 0.5) * 1.1, (v - 0.62) * 0.9)
-                if 0.36 < d < 0.39 and v > 0.45:
-                    r, g, b = 0.55, 0.38, 0.12
-                # central blue-black form, deliberately soft and abstract
-                f = math.exp(-(((u - 0.5) / 0.16) ** 2 + ((v - 0.52) / 0.3) ** 2))
-                r, g, b = r * (1 - f) + 0.02 * f, g * (1 - f) + 0.03 * f, b * (1 - f) + 0.16 * f
-                # vermilion and hibiscus dots
-                if math.hypot(u - 0.5, v - 0.78) < 0.03:
-                    r, g, b = 0.6, 0.06, 0.03
-            k = 0.85 + 0.15 * rnd.random()  # foxing / age
-            px.extend((r * k, g * k, b * k, 1.0))
-    img.pixels = px
-    img.pack()
-    return img
-
-
 
 
 # --------------------------------------------------------------------------
@@ -483,24 +435,158 @@ def build_padlock(mats):
         ob.data.materials.append(I)
 
 
+KALI_PRINT = os.path.join(ROOT, "library", "props", "textures", "_local", "kali_print_clean.png")
+
+
+def print_material(image):
+    """An old devotional print behind glass: matte paper, inks faded toward sepia,
+    lifted blacks, faint foxing and yellowed edges. No emission: it is lit only by the
+    scene lights."""
+    mat = bpy.data.materials.new("KaliPrintPaper")
+    mat.use_nodes = True
+    nt = mat.node_tree
+    bsdf = nt.nodes["Principled BSDF"]
+
+    def node(kind, **kw):
+        n = nt.nodes.new(kind)
+        for k, v in kw.items():
+            setattr(n, k, v)
+        return n
+
+    def mix(fac, a, b, blend='MIX'):
+        m = node("ShaderNodeMix", data_type='RGBA', blend_type=blend)
+        m.inputs[0].default_value = fac if isinstance(fac, float) else 0.0
+        if not isinstance(fac, float):
+            nt.links.new(fac, m.inputs[0])
+        for sock, v in ((m.inputs[6], a), (m.inputs[7], b)):
+            if isinstance(v, tuple):
+                sock.default_value = (*v, 1.0)
+            else:
+                nt.links.new(v, sock)
+        return m.outputs[2]
+
+    uv = node("ShaderNodeTexCoord").outputs["UV"]
+    tex = node("ShaderNodeTexImage", image=image, interpolation='Cubic')
+    nt.links.new(uv, tex.inputs["Vector"])
+    hs = node("ShaderNodeHueSaturation")
+    hs.inputs["Saturation"].default_value = 0.78            # inks have faded
+    nt.links.new(tex.outputs["Color"], hs.inputs["Color"])
+    bw = node("ShaderNodeRGBToBW")
+    nt.links.new(tex.outputs["Color"], bw.inputs["Color"])
+    sepia = mix(0.0, (0, 0, 0), (1.0, 0.84, 0.62), 'MULTIPLY')
+    sep_node = nt.nodes[-1]
+    sep_node.inputs[0].default_value = 1.0
+    nt.links.new(bw.outputs["Val"], sep_node.inputs[6])
+    col = mix(0.3, hs.outputs["Color"], sepia)              # slight sepia cast
+    col = mix(1.0, col, (0.9, 0.85, 0.74), 'MULTIPLY')       # yellowed paper tone
+    # faded print: blacks lift to warm paper, whites never reach full brightness
+    fade = node("ShaderNodeMapRange", data_type='FLOAT_VECTOR')
+    sock = {s.identifier: s for s in fade.inputs}
+    nt.links.new(col, sock["Vector"])
+    sock["To_Min_FLOAT3"].default_value = (0.045, 0.036, 0.026)
+    sock["To_Max_FLOAT3"].default_value = (0.82, 0.8, 0.74)
+    col = next(s for s in fade.outputs if s.identifier == "Vector")
+    # foxing spots and darker, yellower edges
+    fox = node("ShaderNodeTexNoise")
+    fox.inputs["Scale"].default_value = 22
+    fox.inputs["Detail"].default_value = 6
+    nt.links.new(uv, fox.inputs["Vector"])
+    spots = node("ShaderNodeValToRGB")
+    spots.color_ramp.elements[0].position = 0.62
+    spots.color_ramp.elements[0].color = (1, 1, 1, 1)
+    spots.color_ramp.elements[1].position = 0.75
+    spots.color_ramp.elements[1].color = (0.8, 0.7, 0.55, 1)
+    nt.links.new(fox.outputs["Fac"], spots.inputs["Fac"])
+    col = mix(1.0, col, spots.outputs["Color"], 'MULTIPLY')
+    grad = node("ShaderNodeTexGradient", gradient_type='QUADRATIC_SPHERE')
+    centre = node("ShaderNodeMapping")
+    centre.inputs["Location"].default_value = (-0.5, -0.5, 0)
+    centre.inputs["Scale"].default_value = (1.45, 1.25, 1)
+    nt.links.new(uv, centre.inputs["Vector"])
+    nt.links.new(centre.outputs[0], grad.inputs["Vector"])
+    edge = node("ShaderNodeValToRGB")
+    edge.color_ramp.elements[0].color = (0.72, 0.6, 0.42, 1)
+    edge.color_ramp.elements[1].position = 0.35
+    edge.color_ramp.elements[1].color = (1, 1, 1, 1)
+    nt.links.new(grad.outputs["Fac"], edge.inputs["Fac"])
+    col = mix(1.0, col, edge.outputs["Color"], 'MULTIPLY')
+    nt.links.new(col, bsdf.inputs["Base Color"])
+    bsdf.inputs["Roughness"].default_value = 0.72
+    bsdf.inputs["Specular IOR Level"].default_value = 0.3
+    bsdf.inputs["Emission Strength"].default_value = 0.0
+    return mat
+
+
+def glass_material():
+    """Picture glass: mostly transparent, with a Fresnel-weighted reflection (about 10 %
+    head-on, much more at grazing angles) and faint smudges in its roughness."""
+    mat = bpy.data.materials.new("FrameGlass")
+    mat.use_nodes = True
+    nt = mat.node_tree
+    nt.nodes.clear()
+    out = nt.nodes.new("ShaderNodeOutputMaterial")
+    clear = nt.nodes.new("ShaderNodeBsdfTransparent")
+    clear.inputs["Color"].default_value = (0.97, 0.985, 0.975, 1)
+    gloss = nt.nodes.new("ShaderNodeBsdfGlossy")
+    smudge = nt.nodes.new("ShaderNodeTexNoise")
+    smudge.inputs["Scale"].default_value = 9
+    smudge.inputs["Detail"].default_value = 4
+    rough = nt.nodes.new("ShaderNodeMapRange")
+    rough.inputs["To Min"].default_value = 0.004
+    rough.inputs["To Max"].default_value = 0.045
+    nt.links.new(smudge.outputs["Fac"], rough.inputs["Value"])
+    nt.links.new(rough.outputs["Result"], gloss.inputs["Roughness"])
+    fres = nt.nodes.new("ShaderNodeFresnel")
+    fres.inputs["IOR"].default_value = 1.9      # stronger than real glass, so it reads on camera
+    mixs = nt.nodes.new("ShaderNodeMixShader")
+    nt.links.new(fres.outputs[0], mixs.inputs[0])
+    nt.links.new(clear.outputs[0], mixs.inputs[1])
+    nt.links.new(gloss.outputs[0], mixs.inputs[2])
+    nt.links.new(mixs.outputs[0], out.inputs["Surface"])
+    return mat
+
+
 @collected("PROP_KaliFrame")
-def build_kali_frame(mats):
-    """Framed devotional print of Maa Kali with a marigold and hibiscus garland."""
-    fw, fh = 0.42, 0.56
-    box("FrameBack", (FRAME_C.x - fw / 2 - 0.035, BACK_Y - 0.03, FRAME_C.z - fh / 2 - 0.035),
-        (FRAME_C.x + fw / 2 + 0.035, BACK_Y, FRAME_C.z + fh / 2 + 0.035), mats["timber"])
+def build_kali_frame(mats, image_path=KALI_PRINT):
+    """Framed, glazed devotional print of Maa Kali with a marigold and hibiscus garland.
+
+    The print image is a local-only placeholder (see CLAUDE.md): it is loaded by path,
+    saved relative to the .blend and never packed. The frame takes the image's ratio."""
+    img = bpy.data.images.load(image_path, check_existing=True)
+    img.name = "KaliPrint"
+    fh = 0.56
+    fw = fh * img.size[0] / img.size[1]
+    T = mats["timber"]
+    m, rim, depth = 0.035, 0.022, 0.016          # backing margin, moulding width and depth
+    box("FrameBack", (FRAME_C.x - fw / 2 - m, BACK_Y - 0.03, FRAME_C.z - fh / 2 - m),
+        (FRAME_C.x + fw / 2 + m, BACK_Y, FRAME_C.z + fh / 2 + m), T)
     bpy.ops.mesh.primitive_plane_add(size=1, location=(FRAME_C.x, BACK_Y - 0.032, FRAME_C.z),
                                      rotation=(math.pi / 2, 0, 0))
     pr = bpy.context.active_object
     pr.name = "KaliPrint"
     pr.scale = (fw, fh, 1)
-    pr.data.materials.append(mats["print"])
+    pr.data.materials.append(print_material(img))
+    bpy.ops.mesh.primitive_plane_add(size=1, location=(FRAME_C.x, BACK_Y - 0.036, FRAME_C.z),
+                                     rotation=(math.pi / 2, 0, 0))
+    gl = bpy.context.active_object
+    gl.name = "KaliGlass"
+    gl.scale = (fw + 0.01, fh + 0.01, 1)
+    gl.data.materials.append(glass_material())
+    gl.visible_shadow = False
+    # moulding: four timber rails that hold the glass
+    x0, x1 = FRAME_C.x - fw / 2 - m, FRAME_C.x + fw / 2 + m
+    z0, z1 = FRAME_C.z - fh / 2 - m, FRAME_C.z + fh / 2 + m
+    y0, y1 = BACK_Y - 0.03 - depth, BACK_Y - 0.03
+    box("FrameRailTop", (x0, y0, z1 - rim), (x1, y1, z1), T)
+    box("FrameRailBottom", (x0, y0, z0), (x1, y1, z0 + rim), T)
+    box("FrameRailLeft", (x0, y0, z0 + rim), (x0 + rim, y1, z1 - rim), T)
+    box("FrameRailRight", (x1 - rim, y0, z0 + rim), (x1, y1, z1 - rim), T)
     for i in range(31):
         a = i / 30
         x = FRAME_C.x - fw / 2 - 0.02 + (fw + 0.04) * a
         z = FRAME_C.z + fh / 2 - 0.02 - 0.32 * math.sin(math.pi * a)
-        m = mats["hibiscus"] if i % 7 == 3 else mats["marigold"]
-        sphere(f"Garland{i:02d}", (x, BACK_Y - 0.05, z), (0.016, 0.016, 0.015), m, seg=12)
+        mat = mats["hibiscus"] if i % 7 == 3 else mats["marigold"]
+        sphere(f"Garland{i:02d}", (x, BACK_Y - 0.05, z), (0.016, 0.016, 0.015), mat, seg=12)
 
 
 PIN_LEN = 0.18

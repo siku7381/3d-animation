@@ -1,10 +1,10 @@
-# CHARULATA — 30-second 3D teaser
+# TARA — 30-second 3D teaser
 
-A monsoon night in an ageing Bengal village prayer room. Charulata, 70, trims the
+A monsoon night in an ageing prayer room in Puri, Odisha. Charulata, 70, an Odia widow, trims the
 wick of a brass lamp beneath a framed image of Maa Kali. Behind her, a padlocked
 rear-recess door.
 
-Output: `out/charulata_sc01_lamp.mp4` (earlier cut: `out/charulata.mp4`), 1920×1080, 24 fps, 2.39:1 letterbox, H.264 + AAC stereo, 30 s.
+Output: `out/Tara.mp4` (earlier cut, under the old title: `out/charulata.mp4`), 1920×1080, 24 fps, 2.39:1 letterbox, H.264 + AAC stereo, 30 s.
 
 Production layout (see **CLAUDE.md** for the rules and **continuity.md** for scene state):
 assets live once in `library/` as Blender files, each scene links them, and `edit/` holds
@@ -18,7 +18,7 @@ B=/Applications/Blender.app/Contents/MacOS/Blender
 $B -b --python scenes/sc01_lamp/build_scene.py      # link library + bake shots -> sc01_lamp.blend
 $B -b scenes/sc01_lamp/sc01_lamp.blend --python scenes/sc01_lamp/render.py   # Cycles, Metal GPU, 1920x1080
 ~/charulata-env/bin/python edit/sound.py build/sc01_lamp/audio.wav --scene sc01_lamp
-~/charulata-env/bin/python edit/post.py --scene sc01_lamp                    # -> out/charulata_sc01_lamp.mp4
+~/charulata-env/bin/python edit/post.py --scene sc01_lamp                    # -> out/Tara.mp4
 ```
 
 | Path | What it does |
@@ -35,14 +35,14 @@ $B -b scenes/sc01_lamp/sc01_lamp.blend --python scenes/sc01_lamp/render.py   # C
 
 | Time | Shot | Picture | Type | Sound |
 |---|---|---|---|---|
-| 0:00–0:03 | Cold open (2D motion graphics) | Rain streaks over a black village skyline. Two lightning flashes reveal palms and roofs. | `SHONAR GAON, BENGAL` letters rise in with a staggered blur, an underline wipes in, then `Monsoon · 1:47 a.m.` types on | Outdoor rain, a close thunder crack, whoosh |
-| 0:03–0:08.5 | S1 wide | Slow push toward Charulata at the altar. A distant flicker in the window. | `FORTY MONSOONS.` (tracking compresses as it holds) | Rain goes muffled indoors, tanpura drone swells, distant rumble |
-| 0:08.5–0:11.5 | S2 lamp close-up, 60 mm at f/1.6 | Her brass pin coaxes the wick, and the flame swells | `ONE LAMP.` | Cut hit, flame sizzle and crackle, two metal *tinks* |
-| 0:11.5–0:14.5 | S3 padlock | Push in on the padlocked door, then a lightning strike through the barred window | `ONE LOCKED DOOR.` (RGB-split glitch on the strike) | Thunder crack, chain/padlock rattle, the heartbeat starts |
+| 0:00–0:03 | Cold open (2D motion graphics) | Rain streaks over a black village skyline. Two lightning flashes reveal palms and roofs. | `Puri, Odisha` letters rise in with a staggered blur, an underline wipes in, then `MONSOON · 1:10 a.m. NIGHT` types on | Outdoor rain, a close thunder crack, whoosh |
+| 0:03–0:08.5 | S1 wide | Slow push toward Charulata at the altar. A distant flicker in the window. | `HE STOLE HER VOICE.` (tracking compresses as it holds) | Rain goes muffled indoors, tanpura drone swells, distant rumble |
+| 0:08.5–0:11.5 | S2 lamp close-up, 60 mm at f/1.6 | Her brass pin coaxes the wick, and the flame swells | `HER MOTHER / NEVER LET GO.` (two lines) | Cut hit, flame sizzle and crackle, two metal *tinks* |
+| 0:11.5–0:14.5 | S3 padlock | Push in on the padlocked door, then a lightning strike through the barred window | `THE GODDESS / ANSWERED.` (two lines, RGB-split glitch on the strike) | Thunder crack, chain/padlock rattle, the heartbeat starts |
 | 0:14.5–0:19.5 | S4 over-shoulder | Lost-profile push, the lamp glowing beyond her | *She has never asked / what waits behind it.* | Heartbeat accelerates, riser |
 | 0:19.5–0:21.5 | S5 Kali frame | Garlanded print, then the big strike, camera shake | — | Thunder and sub boom |
 | 0:21.5–0:25.5 | S6 high wide | White-flash cut in. The flame nearly gutters, then steadies. | *Tonight, the flame wavers.* | Near silence: rain and the gutter swell, reverse riser |
-| 0:25.5–0:30 | Title | Smash to black → `CHARULATA` impacts, tracking settles, a warm light sweep, embers | চারুলতা, `THIS MONSOON` | Boom, brass temple bell with a long tail, fade |
+| 0:25.5–0:30 | Title | Smash to black → `TARA` impacts, tracking settles, a warm light sweep, embers | *Blessing of Maa Kali* (rises with the title), `THIS DURGA PUJA` | Boom, brass temple bell with a long tail, fade |
 
 Pacing goes from long, patient holds (5.5 s) to quicker cuts (3 s, then 2 s) to a
 smash cut and a hard title impact. Every cut lands on a sound hit. Text only appears
@@ -86,7 +86,7 @@ These are honest limits of this version, most important first.
    rain running down the window bars.
 5. **The Maa Kali print** is a deliberately abstract placeholder (dark indigo form, red
    and gold) so the deity is not depicted crudely. Use a licensed traditional print
-   (Kalighat pat style would fit Bengal).
+   (Odisha's Pattachitra, from Raghurajpur near Puri, would fit).
 6. **Sound.** Everything is synthesized. Real Foley (brass pin on a lamp, a cotton
    sari rustle, an old padlock, monsoon on a clay-tile roof), a recorded tanpura and
    a live temple bell would add a lot of realism. Mix to −14 LUFS for YouTube or −24 LKFS

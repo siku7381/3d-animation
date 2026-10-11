@@ -19,25 +19,38 @@ from mathutils.bvhtree import BVHTree
 from charulata_controls import hand_to
 
 MPFB = "bl_ext.blender_org.mpfb"
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CACHE = os.path.join(ROOT, "build", "cache")
 
 # MakeHuman macro sliders: age 0.5 = 25 y, 1.0 = 90 y  ->  0.87 ~ 73 y.
 # Race mix gives a South Asian face (MakeHuman has no South Asian macro).
-PHENOTYPE = dict(gender=0.0, age=0.87, muscle=0.28, weight=0.44, proportions=0.4, height=0.42,
-                 cupsize=0.45, firmness=0.0,
+# Face and body structure follow the reference (CLAUDE.md "Character style guide"):
+# about 78 years old, slight and thin-limbed with sloping shoulders, a thin face with
+# hollow cheeks and prominent cheekbones, hooded eyes with heavy bags, a broad nose with
+# a rounded tip, thin lips with downturned corners, a thin neck with loose skin.
+# MakeHuman macro sliders: age 0.5 = 25 y, 1.0 = 90 y  ->  0.92 ~ 79 y.
+# Race mix gives a South Asian face (MakeHuman has no South Asian macro).
+PHENOTYPE = dict(gender=0.0, age=0.92, muscle=0.2, weight=0.34, proportions=0.4, height=0.42,
+                 cupsize=0.35, firmness=0.0,
                  race=dict(asian=0.12, caucasian=0.58, african=0.30))
 TARGETS = [
-    ("l-eye-bag-incr", 0.55), ("r-eye-bag-incr", 0.55),
-    ("l-eye-bag-height-incr", 0.3), ("r-eye-bag-height-incr", 0.3),
-    ("l-eye-eyefold-down", 0.35), ("r-eye-eyefold-down", 0.35),
-    ("l-cheek-volume-decr", 0.35), ("r-cheek-volume-decr", 0.35),
-    ("l-cheek-bones-incr", 0.25), ("r-cheek-bones-incr", 0.25),
-    ("mouth-angles-down", 0.25), ("mouth-laugh-lines-out", 0.6),
-    ("mouth-upperlip-volume-decr", 0.35), ("mouth-lowerlip-volume-decr", 0.2),
-    ("nose-flaring-incr", 0.25), ("nose-point-width-incr", 0.2), ("nose-hump-incr", 0.15),
-    ("chin-prominent-decr", 0.2), ("neck-double-incr", 0.15),
-    ("stomach-pregnant-incr", 0.3), ("head-fat-decr", 0.2),
+    ("head-age-incr", 0.6), ("head-fat-decr", 0.4), ("head-scale-horiz-decr", 0.15),
+    ("l-eye-bag-incr", 0.75), ("r-eye-bag-incr", 0.75),
+    ("l-eye-bag-height-incr", 0.4), ("r-eye-bag-height-incr", 0.4),
+    ("l-eye-eyefold-down", 0.6), ("r-eye-eyefold-down", 0.6),              # hooded lids
+    ("l-eye-push1-in", 0.3), ("r-eye-push1-in", 0.3),                      # deeper-set eyes
+    ("l-cheek-volume-decr", 0.65), ("r-cheek-volume-decr", 0.65),
+    ("l-cheek-inner-decr", 0.35), ("r-cheek-inner-decr", 0.35),
+    ("l-cheek-bones-incr", 0.45), ("r-cheek-bones-incr", 0.45),
+    ("mouth-angles-down", 0.4), ("mouth-laugh-lines-out", 0.85),
+    ("mouth-upperlip-volume-decr", 0.55), ("mouth-lowerlip-volume-decr", 0.35),
+    ("mouth-trans-backward", 0.2),                                          # receding mouth
+    ("nose-scale-horiz-incr", 0.25), ("nose-point-width-incr", 0.35), ("nose-flaring-incr", 0.35),
+    ("nose-hump-incr", 0.1),
+    ("chin-prominent-incr", 0.15), ("chin-width-decr", 0.15),
+    ("neck-scale-horiz-decr", 0.25), ("neck-double-incr", 0.1),
+    ("measure-shoulder-dist-decr", 0.25), ("torso-scale-horiz-decr", 0.1),
+    ("stomach-pregnant-incr", 0.2),
 ]
 # Medium-brown target (sRGB median of the face/body albedo).
 SKIN_TARGET = (0.55, 0.375, 0.27)
@@ -135,7 +148,7 @@ def _fine_lines(mat):
     nt.links.new(creases(340, 0.18, 0.4), add.inputs[0])
     nt.links.new(creases(150, 0.3, -0.7), add.inputs[1])
     bump = nt.nodes.new("ShaderNodeBump")
-    bump.inputs["Strength"].default_value = 0.18
+    bump.inputs["Strength"].default_value = 0.28      # deeper age lines (reference skin detail)
     bump.inputs["Distance"].default_value = 0.0004
     bump.invert = True
     nt.links.new(add.outputs[0], bump.inputs["Height"])
@@ -169,15 +182,21 @@ def _tune_materials(rig):
                 group.inputs["SSS radius scale"].default_value = 0.08
                 _fine_lines(mat)
             elif name == "high-poly" and group:
-                _set_inputs(group, IrisMajorColor=(0.16, 0.075, 0.03, 1), IrisMinorColor=(0.05, 0.022, 0.01, 1),
-                            IrisSection4Color=(0.02, 0.012, 0.008, 1), EyeWhiteColor=(0.86, 0.8, 0.7, 1),
-                            PupilSize=0.36)
+                # warm brown irises, sized so the (slightly yellowed) whites show under hooded lids
+                _set_inputs(group, IrisMajorColor=(0.24, 0.12, 0.05, 1), IrisMinorColor=(0.1, 0.05, 0.022, 1),
+                            IrisSection4Color=(0.05, 0.03, 0.02, 1), EyeWhiteColor=(0.8, 0.74, 0.64, 1),
+                            PupilSize=0.3, IrisToEyeWhiteRelation=0.3,
+                            # The cornea refracts by default; with refractive caustics off (house render
+                            # settings) that blacks out the whole eye. A mostly clear cornea keeps the
+                            # whites and iris lit and still gives a catchlight.
+                            OuterLayerAlpha=0.15)
             elif name.startswith(("eyebrow", "eyelashes")):
                 bsdf = next(n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED')
                 col = bsdf.inputs["Base Color"]
                 for l in list(col.links):
                     nt.links.remove(l)
-                col.default_value = (0.42, 0.41, 0.39, 1) if name.startswith("eyebrow") else (0.16, 0.155, 0.15, 1)
+                # sparse grey brows and dark lashes (lighter values read as white under the lamp)
+                col.default_value = (0.13, 0.125, 0.12, 1) if name.startswith("eyebrow") else (0.025, 0.022, 0.02, 1)
                 bsdf.inputs["Roughness"].default_value = 0.5
 
 

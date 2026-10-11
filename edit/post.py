@@ -2,7 +2,7 @@
 grain -> H.264 + AAC. Timing comes from the scene's timeline.py.
 
     python3 edit/post.py [--scene sc01_lamp] [--frames build/frames/sc01_lamp]
-                         [--audio build/sc01_lamp/audio.wav] [--out out/charulata_sc01_lamp.mp4]
+                         [--audio build/sc01_lamp/audio.wav] [--out out/Tara.mp4]
                          [--preview-at SECONDS --preview-out file.png]
 """
 import argparse
@@ -20,6 +20,7 @@ T = style.load_timeline()
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FONTS = os.path.join(ROOT, "assets", "fonts")
+FILM_TITLE = "TARA"
 W, H, FPS = style.W, style.H, style.FPS
 BAR = int(round((H - W / style.LETTERBOX) / 2)) if style.LETTERBOX else 0
 rng = np.random.default_rng(7)
@@ -229,7 +230,6 @@ class Type:
     def __init__(self):
         self.cinzel = lambda s, w=None: font("Cinzel.ttf", s, w)
         self.corm = lambda s, w=None: font("Cormorant.ttf", s, w)
-        self.beng = lambda s, w=None: font("NotoSerifBengali.ttf", s, w)
         self._fonts = {}
 
     def f(self, key, fn, size, weight=None):
@@ -288,7 +288,9 @@ class Type:
                 a = ease(u / 0.25) * out
                 trk = 40 - 22 * ease_out(u / dur)
                 blur = (1 - ease(u / 0.3)) * 10 + (1 - out) * 8
-                self.tracked(d, (W / 2, H / 2 + 260), e["text"], fnt, trk, (*cream[:3], int(255 * a)))
+                # "\n" breaks a long line; the first line keeps the slot's baseline
+                for k, line in enumerate(e["text"].split("\n")):
+                    self.tracked(d, (W / 2, H / 2 + 260 + 100 * k), line, fnt, trk, (*cream[:3], int(255 * a)))
             elif st in ("whisper", "whisper2"):
                 fnt = self.f("cmi", self.corm, 58, 500)
                 a = ease(u / 0.7) * out
@@ -321,11 +323,12 @@ class Type:
                 for sgn in (-1, 1):
                     x0 = W / 2 + sgn * 120
                     d.line([(x0, H / 2 + 110), (x0 + sgn * rl, H / 2 + 110)], fill=(190, 150, 90, int(220 * a)), width=2)
-            elif st == "sub":
-                fnt = self.f("bn", self.beng, 66, 500)
+            elif st == "tagline":
+                # title-card tagline: rises with the title and fades out with it
+                fnt = self.f("cmi", self.corm, 44, 500)
                 a = ease(u / 0.9) * (1 - ease((t - 29.3) / 0.3))
-                d.text((W / 2, H / 2 + 190), e["text"], font=fnt, fill=(214, 160, 85, int(255 * a)), anchor="ms")
-                blur = (1 - ease(u / 0.8)) * 5
+                d.text((W / 2, H / 2 + 200), e["text"], font=fnt, fill=(222, 206, 178, int(240 * a)), anchor="ms")
+                blur = (1 - ease(u / 0.8)) * 4
             elif st == "tag":
                 fnt = self.f("czs", self.cinzel, 30, 500)
                 a = ease(u / 0.6) * (1 - ease((t - 29.3) / 0.3))
@@ -335,7 +338,7 @@ class Type:
                 arr = np.asarray(tmp).copy()
                 g = np.random.default_rng(int(t * 1000))
                 for _ in range(7):
-                    y0 = g.integers(H // 2 + 150, H // 2 + 300)
+                    y0 = g.integers(H // 2 + 150, H // 2 + 300 + 100 * e["text"].count("\n"))
                     h = g.integers(4, 18)
                     arr[y0:y0 + h] = np.roll(arr[y0:y0 + h], g.integers(-40, 40), axis=1)
                 r = np.roll(arr[..., 0], 6, axis=1)
@@ -433,7 +436,7 @@ def main():
     ap.add_argument("--scene", default=scene)
     ap.add_argument("--frames", default=os.path.join(ROOT, "build", "frames", scene))
     ap.add_argument("--audio", default=os.path.join(ROOT, "build", scene, "audio.wav"))
-    ap.add_argument("--out", default=os.path.join(ROOT, "out", f"charulata_{scene}.mp4"))
+    ap.add_argument("--out", default=os.path.join(ROOT, "out", "Tara.mp4"))
     ap.add_argument("--preview-at", type=float, nargs="*")
     ap.add_argument("--preview-out", default="preview.png")
     a = ap.parse_args()
@@ -459,7 +462,8 @@ def main():
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
            "-r", str(FPS), "-i", "-", "-i", a.audio, "-map", "0:v", "-map", "1:a",
            "-c:v", "libx264", "-preset", "slow", "-crf", "17", "-pix_fmt", "yuv420p",
-           "-tune", "film", "-c:a", "aac", "-b:a", "256k", "-shortest", "-movflags", "+faststart", a.out]
+           "-tune", "film", "-c:a", "aac", "-b:a", "256k", "-shortest", "-movflags", "+faststart",
+           "-metadata", f"title={FILM_TITLE}", a.out]
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     for f in range(total):
         im = render_frame(f, frames, typ)
