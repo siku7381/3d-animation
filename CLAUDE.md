@@ -228,7 +228,31 @@ these as inferences, not measurements.
   image is referenced by relative path and never packed into `kali_frame.blend`, so a clone
   without the file shows a missing (pink) texture.
 
+- **Tulasi plant** (`PROP_TulasiPlant`, `library/props/tulasi_plant.blend`): a Krishna
+  tulasi (holy basil) on the courtyard's tulasi chaura, about 0.8 m tall, a bushy woody
+  shrub with about 5,000 small oval, lightly serrated leaves in dense clusters (deep green
+  and purple-tinged), manjari flower/seed spikes at the stem tips, rain-soaked with drops
+  hanging from the leaves. Authored in place on the chaura (top at z 0.49, centre
+  x -8.7, y -14.1); built by `library/source/tulasi.py` from the CC0 Leaf001 scan
+  (`library/assets/_ext/`, re-fetch with `fetch_assets.py`). Geography lock: it stands
+  on the tulasi chaura and is never moved. The chaura carries faded jhoti, a vermilion
+  mark on its south and west faces, and an unlit clay diya in a niche on its north face
+  (toward the prayer room).
+- **Tulasi chaura** (approved look): a tiered square pedestal 1.0 m tall in weathered,
+  whitewashed lime plaster (off-white, rain-streaked, grey and black stains, moss at the
+  base and in the corners, chipped edges showing laterite, damp low down), a faded chipped
+  red band, four small equal rounded finials, a hollow planter rim filled with wet mud.
+  **Jhoti is white rice paste painted on panels of faded red earth (geru)**, the Odia
+  tradition, never white on bare whitewash: lotus (south), conch (west), Lakshmi's
+  footprints (east), a loop-and-dot border under the niche (north); brush-like and partly
+  rain-washed. Motifs: `library/source/jhoti_motifs.py`.
+
 ## Lighting look (`LGT_MonsoonNight`)
+
+Exterior shots use `LGT_MonsoonNightExterior` (`library/lighting/monsoon_night_exterior.blend`):
+no cool fill and no sky card; the lamp is the only warm light, seen as a flickering
+spill through the barred window; an overcast procedural cloud sky (world node "Flash")
+and a `LightningSky` disk light above the house for lightning.
 
 - **Warm lamp key**: `FlameLight` (orange point light at the flame) plus `LampKicker`.
   The flame is the only warm source.

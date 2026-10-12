@@ -21,6 +21,7 @@ from mathutils import Vector  # noqa: E402
 
 import assets  # noqa: E402
 import charulata  # noqa: E402
+import tulasi  # noqa: E402
 import render_setup  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(HERE))
@@ -35,6 +36,8 @@ ASSETS = {
     "padlock": ("props/padlock.blend", "PROP_Padlock", (0.9, 1.3, 1.12), (1.10, 2.0, 1.02), 45),
     "kali_frame": ("props/kali_frame.blend", "PROP_KaliFrame", (-0.3, 0.6, 1.15), (-0.42, 1.97, 1.08), 40),
     "monsoon_night": ("lighting/monsoon_night.blend", "LGT_MonsoonNight", (-1.6, -1.3, 1.6), (0.0, 1.2, 0.6), 24),
+    "monsoon_night_exterior": ("lighting/monsoon_night_exterior.blend", "LGT_MonsoonNightExterior", (12.0, -8.0, 4.0), (2.8, 0.45, 1.4), 35),
+    "tulasi_plant": ("props/tulasi_plant.blend", "PROP_TulasiPlant", (-10.6, -16.4, 1.4), (-8.7, -14.1, 0.85), 40),
 }
 
 
@@ -47,13 +50,16 @@ def author():
     assets.build_kali_frame(mats)
     assets.build_lamp(mats)
     assets.build_lights(mats)
+    assets.build_lights_exterior(mats)
+    assets.collected("PROP_TulasiPlant")(lambda: tulasi.build(bpy.context.scene.collection))()
     obs = bpy.data.objects
     assets.collected("CHAR_Charulata")(charulata.build)(
         mats, assets.CHARU_ROOT, assets.WICK, floor_z=0.012,
         floors=[obs["Floor"], obs["Asana"], obs["Altar"]])
     for img in bpy.data.images:
         # pack everything except local-only material (unknown licence, see CLAUDE.md)
-        if img.source == 'FILE' and not img.packed_file and img.filepath and "_local" not in img.filepath:
+        if img.source == 'FILE' and not img.packed_file and img.filepath and "_local" not in img.filepath \
+                and "_ext" not in img.filepath:                     # CC0 downloads stay external (re-fetchable)
             img.pack()
     os.makedirs(os.path.dirname(MASTER), exist_ok=True)
     bpy.ops.wm.save_as_mainfile(filepath=MASTER, compress=True)
@@ -96,7 +102,7 @@ def write(key):
     cam.location = cam_pos
     cam.rotation_euler = (Vector(aim) - Vector(cam_pos)).to_track_quat('-Z', 'Y').to_euler()
     sc.camera = cam
-    if key == "monsoon_night":
+    if key in ("monsoon_night", "monsoon_night_exterior"):
         # a plain grey room-sized card set so the lights have something to fall on
         for name, loc, rot, size in (("PREVIEW_Floor", (0, 0.5, 0), (0, 0, 0), 5),
                                      ("PREVIEW_Wall", (0, 2.0, 1.5), (math.pi / 2, 0, 0), 5)):
@@ -126,6 +132,12 @@ def write(key):
                    0.8, target)
             _light(prev, "PREVIEW_Fill", 'AREA', Vector(cam_pos) + Vector((0.8, 0.2, 0.2)), 12, (0.8, 0.85, 1.0),
                    1.0, target)
+    keep_world = {"monsoon_night": "WLD_MonsoonNight", "monsoon_night_exterior": "WLD_MonsoonNightExterior"}.get(key)
+    if keep_world:
+        sc.world = bpy.data.worlds[keep_world]
+    for w in bpy.data.worlds:                     # each lighting world lives only in its own file
+        if w.name != keep_world:
+            w.use_fake_user = False
     render_setup.render_settings(sc, samples=128)
     bpy.data.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
     out = os.path.join(LIB, path)

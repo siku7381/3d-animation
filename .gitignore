@@ -34,3 +34,6 @@ reference/*.mkv
 # Local-only material with unknown licence (never commit; see CLAUDE.md)
 reference/_local/
 library/props/textures/_local/
+
+# CC0 downloads (re-fetch with library/source/fetch_assets.py)
+library/assets/_ext/

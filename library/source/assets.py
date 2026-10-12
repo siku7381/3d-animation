@@ -675,3 +675,104 @@ def build_lights(mats):
     w.node_tree.nodes["Background"].inputs["Color"].default_value = (0.004, 0.005, 0.009, 1)
     w.node_tree.nodes["Background"].inputs["Strength"].default_value = 1.0
     w.use_fake_user = True
+
+
+def cloud_world(name, base=(0.012, 0.015, 0.022)):
+    """Monsoon overcast sky: for camera rays, a dark rolling cloud deck (noise) that a
+    'Flash' value lights from within; for lighting, a dim flat blue-grey. The node named
+    "Flash" (0 = dark, 1 = full strike) is what scenes animate."""
+    w = bpy.data.worlds.new(name)
+    w.use_nodes = True
+    nt = w.node_tree
+    nt.nodes.clear()
+    N = lambda kind, **kw: _set(nt.nodes.new(kind), **kw)
+    out = N("ShaderNodeOutputWorld")
+    lp = N("ShaderNodeLightPath")
+    tc = N("ShaderNodeTexCoord")
+    mp = N("ShaderNodeMapping")
+    mp.inputs["Scale"].default_value = (1.4, 1.4, 3.0)
+    nt.links.new(tc.outputs["Generated"], mp.inputs["Vector"])
+    nz = N("ShaderNodeTexNoise")
+    nz.inputs["Scale"].default_value = 3.5
+    nz.inputs["Detail"].default_value = 10.0
+    nz.inputs["Roughness"].default_value = 0.62
+    nz.inputs["Distortion"].default_value = 0.6
+    nt.links.new(mp.outputs[0], nz.inputs["Vector"])
+    ramp = N("ShaderNodeValToRGB")
+    ramp.color_ramp.elements[0].position = 0.35
+    ramp.color_ramp.elements[0].color = (base[0] * 0.5, base[1] * 0.5, base[2] * 0.6, 1)
+    ramp.color_ramp.elements[1].position = 0.75
+    ramp.color_ramp.elements[1].color = (base[0] * 2.2, base[1] * 2.3, base[2] * 2.6, 1)
+    nt.links.new(nz.outputs["Fac"], ramp.inputs["Fac"])
+    flash = N("ShaderNodeValue")
+    flash.name = flash.label = "Flash"
+    flash.outputs[0].default_value = 0.0
+    lit = N("ShaderNodeMix", data_type='RGBA', blend_type='ADD')
+    mul = N("ShaderNodeMath", operation='MULTIPLY')
+    nt.links.new(flash.outputs[0], mul.inputs[0])
+    nt.links.new(nz.outputs["Fac"], mul.inputs[1])
+    nt.links.new(mul.outputs[0], lit.inputs[0])
+    nt.links.new(ramp.outputs["Color"], lit.inputs[6])
+    lit.inputs[7].default_value = (2.4, 2.7, 3.4, 1)                     # cloud interiors lit by lightning
+    sky = N("ShaderNodeBackground")
+    nt.links.new(lit.outputs[2], sky.inputs["Color"])
+    amb = N("ShaderNodeBackground")
+    amb.inputs["Color"].default_value = (*base, 1)
+    amb_k = N("ShaderNodeMath", operation='MULTIPLY_ADD')                 # lightning also lifts the ambient
+    nt.links.new(flash.outputs[0], amb_k.inputs[0])
+    amb_k.inputs[1].default_value = 6.0
+    amb_k.inputs[2].default_value = 1.0
+    nt.links.new(amb_k.outputs[0], amb.inputs["Strength"])
+    mix = N("ShaderNodeMixShader")
+    nt.links.new(lp.outputs["Is Camera Ray"], mix.inputs[0])
+    nt.links.new(amb.outputs[0], mix.inputs[1])
+    nt.links.new(sky.outputs[0], mix.inputs[2])
+    nt.links.new(mix.outputs[0], out.inputs["Surface"])
+    w.use_fake_user = True
+    return w
+
+
+def _set(node, **kw):
+    for k, v in kw.items():
+        setattr(node, k, v)
+    return node
+
+
+@collected("LGT_MonsoonNightExterior")
+def build_lights_exterior(mats):
+    """Exterior monsoon night. No cool interior fill and no sky card: the only warm light
+    in the house is the lamp, seen as a flickering glow spilling out through the prayer
+    room's barred east window. Lightning lights the cloud deck (world "Flash") and the
+    rain mist from above."""
+    ld = bpy.data.lights.new("FlameLight", 'POINT')                      # same flame as indoors
+    ld.energy = 10.0
+    ld.color = (1.0, 0.56, 0.22)
+    ld.shadow_soft_size = 0.008
+    link(bpy.data.objects.new("FlameLight", ld)).location = WICK + Vector((0, 0, 0.018))
+    ld = bpy.data.lights.new("LampKicker", 'POINT')
+    ld.energy = 1.2
+    ld.color = (1.0, 0.5, 0.2)
+    ld.shadow_soft_size = 0.05
+    link(bpy.data.objects.new("LampKicker", ld)).location = WICK + Vector((-0.06, -0.02, 0.22))
+    # the lamp-lit room seen through the window: a warm source just inside, behind the bars,
+    # aimed out (+X), so the bars throw their shadows into the rain
+    ld = bpy.data.lights.new("WindowSpill", 'AREA')
+    ld.shape = 'RECTANGLE'
+    ld.size, ld.size_y = 0.85, 0.8
+    ld.energy = 18
+    ld.color = (1.0, 0.52, 0.2)
+    ob = link(bpy.data.objects.new("WindowSpill", ld))
+    ob.location = (2.05, 0.45, 1.42)
+    ob.rotation_euler = (0, -math.pi / 2, 0)
+    ob["flicker_scale"] = 1.0                                             # scenes drive energy with the flame
+    # lightning from the cloud deck above the house
+    ld = bpy.data.lights.new("LightningSky", 'AREA')
+    ld.shape = 'DISK'
+    ld.size = 30.0
+    ld.energy = 0.0
+    ld.color = (0.75, 0.85, 1.0)
+    ob = link(bpy.data.objects.new("LightningSky", ld))
+    ob.location = (-14.0, -18.0, 55.0)
+    ob.rotation_euler = (math.radians(12), math.radians(-10), 0)
+    w = cloud_world("WLD_MonsoonNightExterior")
+    bpy.context.scene.world = w

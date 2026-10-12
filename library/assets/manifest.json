@@ -1,0 +1,14 @@
+{
+  "polyhaven": {
+    "textures_2k_blend": ["worn_mossy_plasterwall", "damaged_plaster", "worn_cracked_plaster", "red_laterite_soil_stones",
+      "clay_roof_tiles_02", "weathered_planks", "weathered_brown_planks", "clay_floor_001", "mossy_stone_wall",
+      "brown_mud_02", "mossy_rock", "rusty_metal_02", "dry_decay_leaves", "moss_01"],
+    "hdris_4k_exr": ["moonless_golf", "satara_night", "kloppenheim_02_puresky"],
+    "models_2k_blend": ["brass_diya_lantern", "brass_pot_01", "brass_pot_02", "planter_pot_clay", "ceramic_pot",
+      "wooden_broom", "wicker_basket_01", "wooden_bucket_01", "wooden_stool_01", "root_cluster_01", "jug_01"]
+  },
+  "ambientcg": {
+    "2K-JPG": ["Leaf001", "Leaf002", "Leaf003", "ScatteredLeaves007", "Rope002", "Fabric080", "Leaking012A",
+      "Leaking017B", "Ground050"]
+  }
+}
